@@ -7,9 +7,47 @@
   </head>
   <body class="mixpanel-platform-body">
     <script>
-      MP.api.ready(function() {
-        // Run queries and display results here
-      });
+      // assumes you have events 'Content searched' and 'Button clicked'
+MP.api.ready(function() {
+    var contentSearched = MP.api.segment('oob_tutorial_started', '$city', {
+        from: moment().subtract(1, 'months'),
+        unit: 'day'
+    });
+    var signup = MP.api.segment('oob_splash_shown', '$city', {
+        from: moment().subtract(1, 'months'),
+        unit: 'day'
+    });
+
+    $.when(contentSearched, signup).done(function(searched, signup) {
+        signup = signup.values();
+        console.log(searched.values())
+
+        _.each(searched.values(), function(value, city) {
+            if (!signup[city]) {
+                return;
+            }
+
+            $('<span>' + city + '</span>').css({
+                'background': 'white',
+                'border': '1px solid #7a8195',
+                'border-radius': '5px',
+                'color': '#7a8195',
+                'display': 'inline-block',
+                'margin-bottom': '20px',
+                'margin-top': '10px',
+                'padding': '10px'
+            }).appendTo('body');
+
+            $('<div></div>').appendTo('body').MPChart({
+                chartType: 'line',
+                data: {
+                    'oob_tutorial_started': value,
+                    'oob_splash_shown': signup[city]
+                }
+            });
+        });
+    });
+});
     </script>
   </body>
 </html>
